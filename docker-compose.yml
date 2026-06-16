@@ -1,0 +1,107 @@
+services:
+
+  # ── Base de datos Oracle XE ─────────────────────────────────────────────────
+  oracle-db:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: shopconnect-oracle
+    environment:
+      ORACLE_PASSWORD: OracleAdmin1234   # contraseña del usuario SYS/SYSTEM
+    ports:
+      - "1522:1521"
+    volumes:
+      - oracle-data:/opt/oracle/oradata          # datos persistentes
+      - ./oracle-init:/container-entrypoint-initdb.d  # crea los schemas al iniciar
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 20s
+      retries: 10
+      start_period: 120s   # Oracle tarda en arrancar
+
+  # ── ms-usuarios  (puerto 8080) ──────────────────────────────────────────────
+  ms-usuarios:
+    build: ./ms-usuarios
+    container_name: shopconnect-usuarios
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:oracle:thin:@oracle-db:1521/XEPDB1"
+      SPRING_DATASOURCE_USERNAME: MS_USUARIOS
+      SPRING_DATASOURCE_PASSWORD: Pass1234
+      JAVA_OPTS: "-Xms64m -Xmx256m"
+    restart: on-failure
+    mem_limit: 350m
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+
+  # ── ms-inventario  (puerto 8081) ────────────────────────────────────────────
+  ms-inventario:
+    build: ./ms-inventario
+    container_name: shopconnect-inventario
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:oracle:thin:@oracle-db:1521/XEPDB1"
+      SPRING_DATASOURCE_USERNAME: MS_INVENTARIO
+      SPRING_DATASOURCE_PASSWORD: Pass1234
+      JAVA_OPTS: "-Xms64m -Xmx256m"
+    restart: on-failure
+    mem_limit: 350m
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+
+  # ── ms-pagos  (puerto 8082) ─────────────────────────────────────────────────
+  ms-pagos:
+    build: ./ms-pagos
+    container_name: shopconnect-pagos
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:oracle:thin:@oracle-db:1521/XEPDB1"
+      SPRING_DATASOURCE_USERNAME: MS_PAGOS
+      SPRING_DATASOURCE_PASSWORD: Pass1234
+      JAVA_OPTS: "-Xms64m -Xmx256m"
+    restart: on-failure
+    mem_limit: 350m
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+
+  # ── ms-pedidos  (puerto 8083) ───────────────────────────────────────────────
+  ms-pedidos:
+    build: ./ms-pedidos
+    container_name: shopconnect-pedidos
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:oracle:thin:@oracle-db:1521/XEPDB1"
+      SPRING_DATASOURCE_USERNAME: MS_PEDIDOS
+      SPRING_DATASOURCE_PASSWORD: Pass1234
+      JAVA_OPTS: "-Xms64m -Xmx256m"
+    restart: on-failure
+    mem_limit: 350m
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+
+  # ── ms-productos  (puerto 8084) ─────────────────────────────────────────────
+  ms-productos:
+    build: ./ms-productos
+    container_name: shopconnect-productos
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:oracle:thin:@oracle-db:1521/XEPDB1"
+      SPRING_DATASOURCE_USERNAME: MS_PRODUCTOS
+      SPRING_DATASOURCE_PASSWORD: Pass1234
+      JAVA_OPTS: "-Xms64m -Xmx256m"
+    restart: on-failure
+    mem_limit: 350m
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+
+volumes:
+  oracle-data:

@@ -1,8 +1,8 @@
 package eccomerce.ms_inventario.mapper;
 
-import eccomerce.ms_inventario.DTO.InventarioCreacionRequestDTO;
-import eccomerce.ms_inventario.DTO.InventarioResumenResponseDTO;
-import eccomerce.ms_inventario.DTO.MovimientoInventarioResponseDTO;
+import eccomerce.ms_inventario.dto.InventarioCreacionRequestDTO;
+import eccomerce.ms_inventario.dto.InventarioResumenResponseDTO;
+import eccomerce.ms_inventario.dto.MovimientoInventarioResponseDTO;
 import eccomerce.ms_inventario.model.Inventario;
 import eccomerce.ms_inventario.model.MovimientoInventario;
 import org.springframework.stereotype.Component;

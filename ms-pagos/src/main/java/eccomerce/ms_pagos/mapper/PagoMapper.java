@@ -1,9 +1,9 @@
 package eccomerce.ms_pagos.mapper;
 
-import eccomerce.ms_pagos.DTO.MetodoPagoDTO;
-import eccomerce.ms_pagos.DTO.PagoRequestDTO;
-import eccomerce.ms_pagos.DTO.PagoResponseDTO;
-import eccomerce.ms_pagos.DTO.TransaccionPagoResponseDTO;
+import eccomerce.ms_pagos.dto.MetodoPagoDTO;
+import eccomerce.ms_pagos.dto.PagoRequestDTO;
+import eccomerce.ms_pagos.dto.PagoResponseDTO;
+import eccomerce.ms_pagos.dto.TransaccionPagoResponseDTO;
 import eccomerce.ms_pagos.model.MetodoPago;
 import eccomerce.ms_pagos.model.Pago;
 import eccomerce.ms_pagos.model.TransaccionPago;

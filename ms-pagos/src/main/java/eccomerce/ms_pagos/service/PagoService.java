@@ -1,9 +1,10 @@
 package eccomerce.ms_pagos.service;
 
-import eccomerce.ms_pagos.DTO.MetodoPagoDTO;
-import eccomerce.ms_pagos.DTO.PagoRequestDTO;
-import eccomerce.ms_pagos.DTO.PagoResponseDTO;
-import eccomerce.ms_pagos.DTO.TransaccionPagoResponseDTO;
+import eccomerce.ms_pagos.dto.MetodoPagoDTO;
+import eccomerce.ms_pagos.dto.PagoRequestDTO;
+import eccomerce.ms_pagos.dto.PagoResponseDTO;
+import eccomerce.ms_pagos.dto.PedidoExternoDTO;
+import eccomerce.ms_pagos.dto.TransaccionPagoResponseDTO;
 import eccomerce.ms_pagos.mapper.PagoMapper;
 import eccomerce.ms_pagos.model.MetodoPago;
 import eccomerce.ms_pagos.model.Pago;
@@ -11,6 +12,7 @@ import eccomerce.ms_pagos.model.TransaccionPago;
 import eccomerce.ms_pagos.repository.MetodoPagoRepository;
 import eccomerce.ms_pagos.repository.PagoRepository;
 import eccomerce.ms_pagos.repository.TransaccionPagoRepository;
+import eccomerce.ms_pagos.client.PedidoCliente;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -28,15 +30,18 @@ public class PagoService {
     private final MetodoPagoRepository      metodoPagoRepository;
     private final TransaccionPagoRepository transaccionRepository;
     private final PagoMapper                mapper;
+    private final PedidoCliente              pedidoClient;
 
     public PagoService(PagoRepository pagoRepository,
                        MetodoPagoRepository metodoPagoRepository,
                        TransaccionPagoRepository transaccionRepository,
-                       PagoMapper mapper) {
+                       PagoMapper mapper,
+                       PedidoCliente pedidoClient) {
         this.pagoRepository       = pagoRepository;
         this.metodoPagoRepository = metodoPagoRepository;
         this.transaccionRepository = transaccionRepository;
         this.mapper               = mapper;
+        this.pedidoClient         = pedidoClient;
     }
 
     // ══ MÉTODOS DE PAGO ════════════════════════════════════════════════════════
@@ -78,37 +83,49 @@ public class PagoService {
         return mapper.toPagoResponseDTO(pago);
     }
 
-    @Transactional
+        @Transactional
     public PagoResponseDTO procesarPago(PagoRequestDTO dto) {
+ 
+        // ── Validación contra ms-pedidos ────────────────────────────────────
+        PedidoExternoDTO pedido = pedidoClient.buscarPedido(dto.getPedidoId());
+ 
+        if (pedido.getEstado() == null || !"CONFIRMADO".equals(pedido.getEstado().getNombre())) {
+            String estadoActual = pedido.getEstado() != null ? pedido.getEstado().getNombre() : "desconocido";
+            throw new IllegalArgumentException(
+                "No se puede pagar un pedido en estado: " + estadoActual);
+        }
+ 
+        log.info("[PagoService] Pedido validado: id={} estado={}", pedido.getId(), pedido.getEstado().getNombre());
+ 
         MetodoPago metodo = metodoPagoRepository.findById(dto.getMetodoId())
                 .orElseThrow(() -> new RuntimeException("Método de pago no encontrado: " + dto.getMetodoId()));
-
+ 
         Pago guardado = pagoRepository.save(mapper.toEntity(dto, metodo));
-
+ 
         TransaccionPago tx = new TransaccionPago();
         tx.setCodigoRef("TXN-" + System.currentTimeMillis());
         tx.setDetalle("Pago iniciado con " + metodo.getNombre());
         tx.setPago(guardado);
         transaccionRepository.save(tx);
-
+ 
         log.info("[PagoService] Pago procesado id={}", guardado.getId());
         return mapper.toPagoResponseDTO(guardado);
     }
 
-    @Transactional
+     @Transactional
     public PagoResponseDTO actualizarEstado(Long id, String estado) {
         Pago pago = pagoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pago no encontrado: " + id));
-
+ 
         pago.setEstado(estado);
         Pago actualizado = pagoRepository.save(pago);
-
+ 
         TransaccionPago tx = new TransaccionPago();
         tx.setCodigoRef("TXN-" + System.currentTimeMillis());
         tx.setDetalle("Estado actualizado a: " + estado);
         tx.setPago(actualizado);
         transaccionRepository.save(tx);
-
+ 
         return mapper.toPagoResponseDTO(actualizado);
     }
 

@@ -1,8 +1,8 @@
 package eccomerce.ms_pedidos.mapper;
 
-import eccomerce.ms_pedidos.DTO.DetallePedidoSalidaDTO;
-import eccomerce.ms_pedidos.DTO.PedidoEntradaDTO;
-import eccomerce.ms_pedidos.DTO.PedidoSalidaDTO;
+import eccomerce.ms_pedidos.dto.DetallePedidoSalidaDTO;
+import eccomerce.ms_pedidos.dto.PedidoEntradaDTO;
+import eccomerce.ms_pedidos.dto.PedidoSalidaDTO;
 import eccomerce.ms_pedidos.model.DetallePedido;
 import eccomerce.ms_pedidos.model.Pedido;
 
